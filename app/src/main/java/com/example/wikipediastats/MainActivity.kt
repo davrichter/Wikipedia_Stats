@@ -22,6 +22,9 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,14 +93,23 @@ fun ShowStats(article: String) {
         statistics = withContext(Dispatchers.IO) { getStatistics(article) }
     }
 
+    // The last two digits may be hours but are always zero so they are later just sliced away
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+    val printFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
     statistics?.let { stats ->
         Row {
-            Row {
-                Text(
-                    text = "$article: ${
-                        stats[0].views
-                    }"
-                )
+            Column {
+                for (i in stats) {
+                    Text(
+                        text = "$article - ${
+                            LocalDate.parse(i.timestamp.slice(0..7), formatter)
+                                .format(printFormatter)
+                        }: ${
+                            i.views
+                        }"
+                    )
+                }
             }
         }
     }
@@ -135,6 +147,11 @@ data class Item(
 @Composable
 fun DefaultPreview() {
     WikipediaStatsTheme {
-        //Greeting("Android")
+        // A surface container using the 'background' color from the theme
+        Surface(
+            modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+        ) {
+            SearchStats()
+        }
     }
 }
