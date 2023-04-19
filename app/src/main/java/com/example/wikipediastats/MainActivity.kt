@@ -66,12 +66,20 @@ fun SearchStats() {
             .widthIn(min = 320.dp)
     ) {
         var text by remember { mutableStateOf("") }
+        var startDate by remember {
+            mutableStateOf(LocalDate.now())
+        }
+
+        var endDate by remember {
+            mutableStateOf(LocalDate.now())
+        }
+
         Column(
             Modifier
                 .align(Alignment.TopCenter)
                 .padding(start = 8.dp)
         ) {
-            Row() {
+            Row {
                 TextField(
                     modifier = Modifier.padding(all = 8.dp),
                     value = text,
@@ -85,17 +93,9 @@ fun SearchStats() {
                 )
 
                 Button(modifier = Modifier.align(Alignment.CenterVertically),
-                    onClick = { GlobalScope.launch { getStatistics(text) } }) {
+                    onClick = { GlobalScope.launch { getStatistics(text, startDate, endDate) } }) {
                     Text("Go")
                 }
-            }
-
-            var startDate by remember {
-                mutableStateOf(LocalDate.now())
-            }
-
-            val endDate by remember {
-                mutableStateOf(LocalDate.now())
             }
 
             Row {
@@ -108,13 +108,13 @@ fun SearchStats() {
                 Box(Modifier.padding(all = 8.dp)) {
                     TimePeriodPicker("End", endDate, onDateUpdate = {
                         Log.i("MyApp", "End: $it")
-                        startDate = it
+                        endDate = it
                     })
                 }
             }
 
             if (text.isNotBlank()) {
-                ShowStats(text)
+                ShowStats(text, startDate, endDate)
             }
         }
     }
@@ -138,7 +138,7 @@ fun TimePeriodPicker(label: String, beginDate: LocalDate, onDateUpdate: (LocalDa
         negativeButton(text = "Cancel")
     }) {
         datepicker(
-            initialDate = LocalDate.now(),
+            initialDate = date,
             title = "Pick a ${label}date",
         ) {
             date = it
@@ -148,11 +148,11 @@ fun TimePeriodPicker(label: String, beginDate: LocalDate, onDateUpdate: (LocalDa
 }
 
 @Composable
-fun ShowStats(article: String) {
+fun ShowStats(article: String, startDate: LocalDate, endDate: LocalDate) {
     var statistics by remember { mutableStateOf<List<Item>?>(null) }
 
-    LaunchedEffect(article) {
-        statistics = withContext(Dispatchers.IO) { getStatistics(article) }
+    LaunchedEffect(article, startDate, endDate) {
+        statistics = withContext(Dispatchers.IO) { getStatistics(article, startDate, endDate) }
     }
 
     // The last two digits may be hours but are always zero so they are later just sliced away
@@ -180,15 +180,22 @@ fun ShowStats(article: String) {
 
 val client = OkHttpClient()
 
-fun getStatistics(title: String?): List<Item>? {
+fun getStatistics(title: String?, startDate: LocalDate, endDate: LocalDate): List<Item>? {
+    val printFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
     val url =
-        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/$title/daily/2015100100/2015103100"
+        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/$title/daily/${
+            startDate.format(
+                printFormatter
+            ) + "00"
+        }/${endDate.format(printFormatter) + "00"}"
     val request = Request.Builder().url(url).build()
     val response = client.newCall(request).execute()
     return response.body()?.string()?.let {
         if (JSONObject(it).has("items")) {
             Json.decodeFromString<List<Item>>(JSONObject(it)["items"].toString())
         } else {
+            Log.i("MyApp", it)
+            Log.i("MyApp", url)
             null
         }
     }
