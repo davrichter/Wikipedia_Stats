@@ -40,18 +40,43 @@ class MainActivity : ComponentActivity() {
                 WindowCompat.setDecorFitsSystemWindows(window, false)
 
                 // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
-                ) {
-                    SearchStats()
-                }
+                Scaffold(
+                    content = {
+                        Box(Modifier.fillMaxSize()) {
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                color = MaterialTheme.colorScheme.background
+                            ) {
+                                Column {
+                                    TopAppBarSample()
+                                    SearchStats()
+                                }
+                            }
+                        }
+
+                    }
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopAppBarSample() {
+    Column {
+        TopAppBar(
+            title = {
+                Text("Wikipedia Stats", color = MaterialTheme.colorScheme.onPrimary)
+            },
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            ),
+        )
+    }
+}
 
-@OptIn(DelicateCoroutinesApi::class, ExperimentalMaterial3Api::class)
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 fun SearchStats() {
     Box(

@@ -56,7 +56,7 @@ fun WikipediaStatsTheme(
         SideEffect {
             /* accessing the insets controller to change appearance of the status bar, with 100% less deprecation warnings */
             WindowCompat.getInsetsController(currentWindow, view).isAppearanceLightStatusBars =
-                !darkTheme
+                darkTheme
         }
     }
 
