@@ -67,7 +67,7 @@ fun SearchStats() {
     ) {
         var text by remember { mutableStateOf("") }
         var startDate by remember {
-            mutableStateOf(LocalDate.now())
+            mutableStateOf(LocalDate.now().minusDays(30))
         }
 
         var endDate by remember {
@@ -125,13 +125,13 @@ fun SearchStats() {
 fun TimePeriodPicker(label: String, beginDate: LocalDate, onDateUpdate: (LocalDate) -> Unit = {}) {
     val dateDialogState = rememberMaterialDialogState()
 
+    var date by remember { mutableStateOf(beginDate) }
+
     Button(onClick = {
         dateDialogState.show()
     }) {
-        Text(text = label)
+        Text(text = "$label: $date")
     }
-
-    var date by remember { mutableStateOf(beginDate) }
 
     MaterialDialog(dialogState = dateDialogState, buttons = {
         positiveButton(text = "Ok")
