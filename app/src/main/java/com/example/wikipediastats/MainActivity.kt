@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
                                 color = MaterialTheme.colorScheme.background
                             ) {
                                 Column {
-                                    TopAppBarSample()
+                                    TopAppBar()
                                     SearchStats()
                                 }
                             }
@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopAppBarSample() {
+fun TopAppBar() {
     Column {
         TopAppBar(
             title = {
@@ -101,7 +101,7 @@ fun SearchStats() {
         ) {
             Row {
                 TextField(
-                    modifier = Modifier.padding(all = 8.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp),
                     value = text,
                     onValueChange = { newText ->
                         text = newText
@@ -153,13 +153,25 @@ fun TimePeriodPicker(label: String, beginDate: LocalDate, onDateUpdate: (LocalDa
         Text(text = "$label: $date")
     }
 
-    MaterialDialog(dialogState = dateDialogState, buttons = {
-        positiveButton(text = "Ok")
-        negativeButton(text = "Cancel")
-    }) {
+    MaterialDialog(
+        dialogState = dateDialogState,
+        buttons = {
+            positiveButton(text = "Ok")
+            negativeButton(text = "Cancel")
+        },
+        backgroundColor = MaterialTheme.colorScheme.background,
+    ) {
         datepicker(
             initialDate = date,
             title = "Pick a ${label}date",
+            colors = com.vanpra.composematerialdialogs.datetime.date.DatePickerDefaults.colors(
+                headerBackgroundColor = MaterialTheme.colorScheme.primary,
+                headerTextColor = MaterialTheme.colorScheme.onPrimary,
+                dateActiveBackgroundColor = MaterialTheme.colorScheme.primary,
+                dateActiveTextColor = MaterialTheme.colorScheme.onPrimary,
+                dateInactiveTextColor = MaterialTheme.colorScheme.onBackground,
+                calendarHeaderTextColor = MaterialTheme.colorScheme.onBackground,
+            ),
         ) {
             date = it
             onDateUpdate(it)
@@ -206,7 +218,7 @@ fun getStatistics(title: String?, startDate: LocalDate, endDate: LocalDate): Lis
         "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/$title/daily/${
             startDate.format(
                 printFormatter
-            ) + "00"
+            ) + "00" // The last two digits may be hours but are always zero
         }/${endDate.format(printFormatter) + "00"}"
     val request = Request.Builder().url(url).build()
     val response = client.newCall(request).execute()
